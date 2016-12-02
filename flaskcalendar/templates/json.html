@@ -43,13 +43,13 @@
                 var event = {
                     title: 'New event',
                     start: date,
-                    editable: true
+                    editable: true,
                 };
                 $("#calendar").fullCalendar('renderEvent', event, true);
             },
 
             eventClick: function(calEvent, jsEvent, view) {
-                var element = <Dialog x="4" y="5" calEvent={calEvent} calendar={$("#calendar")} />;
+                var element = <Dialog calEventId={calEvent._id} calendar={$("#calendar")} />;
                 ReactDOM.render(element, document.getElementById('sidepane'));
             }
         });
@@ -98,7 +98,6 @@
 
     #sidepane {
         display: inline-block;
-        /* float: right; */
         box-sizing: border-box;
     }
 

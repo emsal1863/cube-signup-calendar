@@ -1,14 +1,10 @@
 class Dialog extends React.Component {
 
 
-    constructor(x, y, calEvent, calendar) {
+    constructor(calEventId, calendar) {
         super();
 
-        this.state = {person: ''}
-
-        this.x = x;
-        this.y = y;
-        this.calEvent = calEvent;
+        this.calEventId = calEventId;
         this.calendar = calendar;
 
         this.state = {
@@ -21,7 +17,7 @@ class Dialog extends React.Component {
     }
 
     handleSubmit(event) {
-        var calEventId = this.props.calEvent._id;
+        var calEventId = this.props.calEventId;
 
         var clientEvents = this.props.calendar.fullCalendar('clientEvents');
         var calEventTrue = clientEvents.find( (calEvent) => calEvent._id === calEventId);
@@ -31,6 +27,7 @@ class Dialog extends React.Component {
         this.props.calendar.fullCalendar('updateEvent', calEventTrue);
         this.props.calendar.fullCalendar('renderEvent', calEventTrue);
         event.preventDefault();
+        return false;
     }
 
     handleChange(event) {
@@ -44,13 +41,14 @@ class Dialog extends React.Component {
         };
 
         return (
-            <div style={divStyle}>
-                <h1>aww yeah</h1>
+            <div style={divStyle}> <h1>Edit event --
+            {this.props.calEventId}</h1>
                 <form onSubmit = {this.handleSubmit}>
-                    <input name="person" onChange={this.handleChange} />
+                    <input name="person" value={this.state.personValue} onChange={this.handleChange} />
                     <input type="submit" value="submit" />
                 </form>
             </div>
         );
     }
+
 }
