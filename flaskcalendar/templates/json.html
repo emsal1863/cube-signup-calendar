@@ -13,30 +13,34 @@
 <script src="{{ url_for('static', filename='fullcalendar.min.js') }}"></script>
 <script type="text/babel" src="{{ url_for('static', filename='dialog.jsx') }}"></script>
 <script type="text/babel">
-    var currentId = 1;
-	$(document).ready(function() {
+    $(document).ready(function() {
 
-		$('#calendar').fullCalendar({
-			header: {
-				left: 'prev,next today',
-				center: 'title',
-				right: 'month,agendaWeek,agendaDay'
-			},
-			editable: true,
-			eventLimit: true, // allow "more" link when too many events
+        $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+
+            editable: true,
+
+            eventLimit: true, // allow "more" link when too many events
+
             droppable: true,
-			events: {
-				url: 'data',
-				error: function() {
-					$('#script-warning').show();
-				}
-			},
-			loading: function(bool) {
-				$('#loading').toggle(bool);
-			},
+
+            events: {
+                url: 'data',
+                error: function() {
+                    $('#script-warning').show();
+                }
+            },
+
+            loading: function(bool) {
+                $('#loading').toggle(bool);
+            },
+
             dayClick: function(date, jsEvent, view) {
                 var event = {
-                    id: ++currentId,
                     title: 'New event',
                     start: date,
                     editable: true
@@ -45,12 +49,11 @@
             },
 
             eventClick: function(calEvent, jsEvent, view) {
-                var element = <Dialog x="4" y="5" />;
+                var element = <Dialog x="4" y="5" calEvent={calEvent} calendar={$("#calendar")} />;
                 ReactDOM.render(element, document.getElementById('sidepane'));
             }
-		});
-
-	});
+        });
+    });
 
 </script>
 <style>
@@ -88,9 +91,9 @@
 
 	#calendar {
         display: inline-block;
-		max-width: 900px;
+        max-width: 900px;
         box-sizing: border-box;
-		padding: 0 10px;
+        padding: 0 10px;
 	}
 
     #sidepane {
@@ -103,13 +106,13 @@
 </head>
 <body>
 
-	<div id='script-warning'>
+    <div id='script-warning'>
 		Error getting data from <code>/data</code> endpoint.
-	</div>
+    </div>
 
-	<div id='loading'>loading...</div>
+    <div id='loading'>loading...</div>
 
-    <div id='calendar'></div>
+    <div id='calendar' ref='calendar' ></div>
 
     <div id='sidepane'></div>
 
