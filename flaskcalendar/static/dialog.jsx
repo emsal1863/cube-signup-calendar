@@ -41,8 +41,7 @@ class Dialog extends React.Component {
         };
 
         return (
-            <div style={divStyle}> <h1>Edit event --
-            {this.props.calEventId}</h1>
+            <div style={divStyle}> <h1>Edit event -- {this.props.calEventId}</h1>
                 <form onSubmit = {this.handleSubmit}>
                     <input name="person" value={this.state.personValue} onChange={this.handleChange} />
                     <input type="submit" value="submit" />
@@ -50,5 +49,4 @@ class Dialog extends React.Component {
             </div>
         );
     }
-
 }
