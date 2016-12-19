@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import functools
@@ -76,6 +77,6 @@ if __name__ == '__main__':
     dirlist_sorted = sorted(dirlist_filtered, key=functools.cmp_to_key(compare_filenames))
 
     for i in dirlist_sorted:
-        print i
+        print(i)
         os.system("psql -f %s" % (dirname + i))
-        print "Migration complete: %s" % i
+        print("Migration complete: %s" % i)
