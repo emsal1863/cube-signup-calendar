@@ -1,6 +1,7 @@
 import os
 import psycopg2
 import urlparse
+from werkzeug.datastructures import ImmutableDict
 
 def init():
     """
@@ -35,6 +36,17 @@ def insert_time(conn, start_time, end_time, person):
     cur.close()
     return tmp
 
+def read_time(conn, event_id):
+    """
+    Get a particular time event from the database.
+
+    Takes in a psycopg2 connection and an event_id (number, resolves to long)
+
+    Returns the data retrieved from the database.
+    """
+    cur.execute("SELECT * FROM calendar_events WHERE id = %s", (event_id,))
+    return cur.fetchone()
+
 def delete_time(conn, event_id):
     """
     Deletes the calendar event with the given `event_id` from the database.
@@ -51,6 +63,8 @@ def delete_time(conn, event_id):
 def edit_time(conn, event_id, new_event_data):
     """
     Edit a time object in the database.
+
+    Takes in a psycopg2 connection, event id, and a json object containing the new data.
 
     Not implemented yet.
     """

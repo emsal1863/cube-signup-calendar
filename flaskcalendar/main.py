@@ -1,3 +1,4 @@
+from __future__ import print_function
 from flask import Flask
 from flask import request, render_template, jsonify
 import json
@@ -25,6 +26,25 @@ def return_data():
         # check out jsonfiy method or the built in json module
         # http://flask.pocoo.org/docs/0.10/api/#module-flask.json
         return input_data.read()
+
+@app.route('/calendar_event')
+def calendar_event_rest():
+    if request.method == 'GET':
+        if 'id' not in request.args:
+            d = {'error': 'need to pass in an id'}
+            return jsonify(**d)
+        else:
+            print(request.args)
+            return jsonify(**{'id': request.args['id']})
+
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'PUT':
+        pass
+    elif request.method == 'DELETE':
+        pass
+    return 'ayy lmoa'
+
 
 if __name__ == '__main__':
     app.debug = True
