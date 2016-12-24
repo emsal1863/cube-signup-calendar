@@ -1,7 +1,31 @@
 import os
 import psycopg2
-import urlparse
+from urllib.parse import urlparse
+import sys
 from werkzeug.datastructures import ImmutableDict
+
+class DBContextManager:
+    """
+    Context manager for database connections for the calendar app's database.
+
+    Handles psycopg2 exceptions by automatically rolling back so every operation is sort of atomic.
+    """
+    def __init__(self, conn):
+        self.conn = conn
+
+    def __enter__(self):
+        return self.conn
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if issubclass(exc_type, psycopg2.Error):
+            conn.rollback()
+            print('Database transaction not successful: %s' % exc_value, file=sys.stderr)
+            return True
+        elif exc_type is not None:
+            return
+        else:
+            return True
+
 
 def init():
     """
@@ -9,8 +33,7 @@ def init():
 
     The particular environment variable DATABASE_URL comes from the heroku specification for using postgres.
     """
-    urlparse.uses_netloc.append("postgres")
-    url = urlparse.urlparse(os.environ["DATABASE_URL"])
+    url = urlparse(os.environ["DATABASE_URL"])
 
     conn = psycopg2.connect(
         database=url.path[1:],
@@ -68,6 +91,15 @@ def edit_time(conn, event_id, new_event_data):
 
     Not implemented yet.
     """
+    pass
+
+def get_many(conn):
+    """
+    Get the last few time events from the database.
+
+    Not sure what timestamp to use yet :P
+    """
+
     pass
 
 def close(conn):

@@ -2,6 +2,7 @@ from __future__ import print_function
 from flask import Flask
 from flask import request, render_template, jsonify
 import json
+from werkzeug.datastructures import ImmutableDict
 
 
 app = Flask(__name__)
@@ -27,7 +28,7 @@ def return_data():
         # http://flask.pocoo.org/docs/0.10/api/#module-flask.json
         return input_data.read()
 
-@app.route('/calendar_event')
+@app.route('/calendar_event', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def calendar_event_rest():
     if request.method == 'GET':
         if 'id' not in request.args:
@@ -36,9 +37,10 @@ def calendar_event_rest():
         else:
             print(request.args)
             return jsonify(**{'id': request.args['id']})
-
     elif request.method == 'POST':
-        pass
+        data = request.get_json()
+        print(ImmutableDict(data))
+        return json.dumps(data)
     elif request.method == 'PUT':
         pass
     elif request.method == 'DELETE':

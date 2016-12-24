@@ -1,11 +1,12 @@
+from __future__ import print_function
 import unittest
 import db_connection
 import psycopg2
-import urlparse
+from urllib.parse import urlparse
 import os
-import mock
+import unittest.mock as mock
+from unittest.mock import patch
 import datetime
-from mock import patch
 
 class TestDBMethods(unittest.TestCase):
     def setUp(self):
@@ -38,7 +39,8 @@ class TestDBMethods(unittest.TestCase):
         insert_result = db_connection.insert_time(conn, datetime.datetime.today(), datetime.datetime.today(), "asdf")[0]
 
         # id shouldn't be 0
-        self.assertTrue(insert_result)
+        print(insert_result)
+        self.assertTrue(insert_result != 0)
 
         db_connection.delete_time(conn, insert_result)
 
