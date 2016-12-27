@@ -21,9 +21,10 @@ class DBContextManager:
             conn.rollback()
             print('Database transaction not successful: %s' % exc_value, file=sys.stderr)
             return True
-        elif exc_type is not None:
-            return
         else:
+            conn.close()
+            if exc_type is not None:
+                return
             return True
 
 
@@ -67,8 +68,13 @@ def read_time(conn, event_id):
 
     Returns the data retrieved from the database.
     """
+    cur = conn.cursor()
     cur.execute("SELECT * FROM calendar_events WHERE id = %s", (event_id,))
-    return cur.fetchone()
+    conn.commit()
+    tmp = cur.fetchone()
+    desc = cur.description
+    cur.close()
+    return ImmutableDict(dict([(desc[i].name, tmp[i]) for i in range(len(desc))]))
 
 def delete_time(conn, event_id):
     """
@@ -85,6 +91,8 @@ def delete_time(conn, event_id):
 
 def edit_time(conn, event_id, new_event_data):
     """
+    TODO
+
     Edit a time object in the database.
 
     Takes in a psycopg2 connection, event id, and a json object containing the new data.
@@ -93,14 +101,26 @@ def edit_time(conn, event_id, new_event_data):
     """
     pass
 
-def get_many(conn):
+def get_many(conn, start, end):
     """
     Get the last few time events from the database.
 
-    Not sure what timestamp to use yet :P
+    As per the fullcalendar docs, the feed should take a start and end timestamp as parameters (https://fullcalendar.io/docs/event_data/events_function/)
+
+    Takes in a psycopg2 connection and two datetime elements.
     """
 
-    pass
+    cur = conn.cursor()
+    cur.execute("""
+    SELECT * FROM calendar_events
+        WHERE start_time >= to_timestamp(%s, 'YYYY-MM-DDTHH:MI')
+        AND start_time <= to_timestamp(%s,'YYYY-MM-DDTHH:MI')
+    """, (start.isoformat(), end.isoformat()))
+
+    conn.commit()
+    tmp_l = cur.fetchall()[:]
+    cur.close()
+    return tmp_l
 
 def close(conn):
     """

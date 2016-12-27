@@ -39,10 +39,53 @@ class TestDBMethods(unittest.TestCase):
         insert_result = db_connection.insert_time(conn, datetime.datetime.today(), datetime.datetime.today(), "asdf")[0]
 
         # id shouldn't be 0
-        print(insert_result)
+        print("id=%s" % insert_result)
         self.assertTrue(insert_result != 0)
 
         db_connection.delete_time(conn, insert_result)
+
+    @patch.dict(os.environ,{'DATABASE_URL': 'postgres'})
+    @patch('psycopg2.connect')
+    def test_get(self, psycopg2_mock):
+        psycopg2_mock.return_value = self.conn
+        conn = db_connection.init()
+
+        insert_result = db_connection.insert_time(conn, datetime.datetime.today(), datetime.datetime.today(), "TESTGET_PERSON")[0]
+        print(insert_result)
+
+        fetch_result = db_connection.read_time(conn, insert_result)
+        print(fetch_result)
+        self.assertTrue(fetch_result.get('person') == "TESTGET_PERSON")
+        db_connection.delete_time(conn, insert_result)
+
+    @patch.dict(os.environ,{'DATABASE_URL': 'postgres'})
+    @patch('psycopg2.connect')
+    def test_insert_and_get_many(self, psycopg2_mock):
+
+        time_0 = datetime.datetime(year=2011, month=2, day=5)
+        num_days = 16
+
+
+        timestamps = [(chr(97 + i), time_0 + datetime.timedelta(days=i), time_0 + datetime.timedelta(days=i, hours=1)) for i in range(num_days)]
+
+        psycopg2_mock.return_value = self.conn
+        conn = db_connection.init()
+
+        rlts_for_deletion = []
+        present_before = len(db_connection.get_many(conn, time_0, time_0 + datetime.timedelta(days=num_days)))
+
+        for person, start_time, end_time in timestamps:
+            insert_result = db_connection.insert_time(conn, start_time, end_time, person)[0]
+            rlts_for_deletion.append(insert_result)
+
+        num_results = len(rlts_for_deletion)
+
+        fetch_result = db_connection.get_many(conn, time_0, time_0 + datetime.timedelta(days=num_days))
+
+
+        for i in rlts_for_deletion:
+            db_connection.delete_time(conn, i)
+        self.assertTrue(len(fetch_result) == num_results + present_before)
 
     def tearDown(self):
         self.conn.close()
