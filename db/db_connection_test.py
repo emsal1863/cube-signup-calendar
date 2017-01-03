@@ -50,7 +50,8 @@ class TestDBMethods(unittest.TestCase):
         psycopg2_mock.return_value = self.conn
         conn = db_connection.init()
 
-        insert_result = db_connection.insert_time(conn, datetime.datetime.today(), datetime.datetime.today(), "TESTGET_PERSON")[0]
+        insert_result = db_connection.insert_time(conn, datetime.datetime.today(),
+            datetime.datetime.today(), "TESTGET_PERSON")[0]
         print(insert_result)
 
         fetch_result = db_connection.read_time(conn, insert_result)
@@ -66,7 +67,8 @@ class TestDBMethods(unittest.TestCase):
         num_days = 16
 
 
-        timestamps = [(chr(97 + i), time_0 + datetime.timedelta(days=i), time_0 + datetime.timedelta(days=i, hours=1)) for i in range(num_days)]
+        timestamps = [(chr(97 + i), time_0 + datetime.timedelta(days=i), time_0 + datetime.timedelta(days=i, hours=1))
+                        for i in range(num_days)]
 
         psycopg2_mock.return_value = self.conn
         conn = db_connection.init()
@@ -86,6 +88,12 @@ class TestDBMethods(unittest.TestCase):
         for i in rlts_for_deletion:
             db_connection.delete_time(conn, i)
         self.assertTrue(len(fetch_result) == num_results + present_before)
+
+    @patch.dict(os.environ,{'DATABASE_URL': 'postgres'})
+    @patch('psycopg2.connect')
+    def test_edit_many(self, psycopg2_mock):
+        psycopg2_mock.return_value = self.conn
+        conn = db_connection.init()
 
     def tearDown(self):
         self.conn.close()

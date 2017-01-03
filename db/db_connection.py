@@ -1,4 +1,4 @@
-import os
+import os 
 import psycopg2
 from urllib.parse import urlparse
 import sys
@@ -54,7 +54,15 @@ def insert_time(conn, start_time, end_time, person):
     Returns the id of the database record just inserted
     """
     cur = conn.cursor()
-    cur.execute("INSERT INTO calendar_events (start_time, end_time, person) VALUES (to_timestamp(%s, 'YYYY-MM-DDTHH:MI'), to_timestamp(%s,'YYYY-MM-DDTHH:MI'), %s) returning id", (start_time.isoformat(), end_time.isoformat(), person))
+    cur.execute("""
+        INSERT INTO calendar_events
+            (start_time, end_time, person)
+        VALUES
+            (to_timestamp(%s, 'YYYY-MM-DDTHH:MI'), to_timestamp(%s,'YYYY-MM-DDTHH:MI'), %s)
+        returning id""",
+        (start_time.isoformat(), end_time.isoformat(), person)
+    )
+
     conn.commit()
     tmp = cur.fetchone()
     cur.close()
@@ -119,8 +127,54 @@ def get_many(conn, start, end):
 
     conn.commit()
     tmp_l = cur.fetchall()[:]
+
+    desc = cur.description
+    ret = [ImmutableDict(dict([(desc[i].name, tmp[i]) for i in range(len(desc))])) for tmp in tmp_l]
+
     cur.close()
     return tmp_l
+
+def insert_or_edit_batch(conn, new_event_data):
+    """
+    TODO
+
+    Edit a set of time objects in the database.
+
+    Takes in a psycopg2 connection, and an array containing the new data.
+    Each datum is in the form of a werkzeug ImmutableDict.
+    """
+
+    cur = conn.cursor()
+
+    for datum in new_event_data:
+        if datum.get('id') is not None:
+            event_id, = datum.get('id')
+            person = datum.get('person')
+            start_time = datum.get('start_time')
+            end_time = datum.get('end_time')
+
+            cur.execute("""
+            UPDATE calendar_events
+            SET {
+                person = %s,
+                start_time = to_timestamp(%s, 'YYYY-MM-DDTHH:MI'),
+                end_time = to_timestamp(%s,'YYYY-MM-DDTHH:MI')
+            }
+            WHERE id=%s""",
+            (person, start_time, end_time, event_id))
+        else:
+            person, start_time, end_time = datum.get('person'), datum.get('start_time'), datum.get('end_time')
+
+            cur.execute("""
+            INSERT INTO calendar_events
+                (start_time, end_time, person)
+            VALUES
+                (to_timestamp(%s, 'YYYY-MM-DDTHH:MI'), to_timestamp(%s,'YYYY-MM-DDTHH:MI'), %s)""",
+            (start_time.isoformat(), end_time.isoformat(), person))
+
+    conn.commit()
+    cur.close()
+
 
 def close(conn):
     """
