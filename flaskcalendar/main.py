@@ -1,8 +1,10 @@
-from __future__ import print_function
+from __future__ import print_function 
 from flask import Flask
 from flask import request, render_template, jsonify
 import json
 from werkzeug.datastructures import ImmutableDict
+
+import db.db_connection
 
 
 app = Flask(__name__)
@@ -36,7 +38,7 @@ def calendar_event_rest():
             return jsonify(**d)
         else:
             print(request.args)
-            return jsonify(**{'id': request.args['id']})
+            return jsonify({'id': request.args['id']})
     elif request.method == 'POST':
         data = request.get_json()
         print(ImmutableDict(data))
@@ -47,6 +49,14 @@ def calendar_event_rest():
         pass
     return 'ayy lmoa'
 
+@app.route('/calendar_event_feed')
+def calendar_event_multi_endpoint():
+    required_params = ('start', 'end')
+    if any([i not in request.args for i in required_params]):
+        return jsonify({'error': 'required param missing'})
+    else:
+        return jsonify({'msg': 'successful request'})
+    
 
 if __name__ == '__main__':
     app.debug = True
