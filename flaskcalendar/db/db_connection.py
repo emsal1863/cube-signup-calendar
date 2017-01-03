@@ -17,12 +17,12 @@ class DBContextManager:
         return self.conn
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if issubclass(exc_type, psycopg2.Error):
+        if exc_type is not None and issubclass(exc_type, psycopg2.Error):
             conn.rollback()
             print('Database transaction not successful: %s' % exc_value, file=sys.stderr)
             return True
         else:
-            conn.close()
+            self.conn.close()
             if exc_type is not None:
                 return
             return True
@@ -161,7 +161,7 @@ def insert_or_edit_batch(conn, new_event_data):
                 end_time = to_timestamp(%s,'YYYY-MM-DDTHH:MI')
             }
             WHERE id=%s""",
-            (person, start_time, end_time, event_id))
+            (person, start_time.isoformat(), end_time.isoformat(), event_id))
         else:
             person, start_time, end_time = datum.get('person'), datum.get('start_time'), datum.get('end_time')
 

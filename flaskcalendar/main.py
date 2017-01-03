@@ -2,9 +2,11 @@ from __future__ import print_function
 from flask import Flask
 from flask import request, render_template, jsonify
 import json
+import datetime
+import dateutil.parser
 from werkzeug.datastructures import ImmutableDict
 
-import db.db_connection
+from db import db_connection
 
 
 app = Flask(__name__)
@@ -55,9 +57,19 @@ def calendar_event_multi_endpoint():
     if any([i not in request.args for i in required_params]):
         return jsonify({'error': 'required param missing'})
     else:
-        return jsonify({'msg': 'successful request'})
+        global dbconn
+        start_date = dateutil.parser.parse(request.args['start'])
+        end_date = dateutil.parser.parse(request.args['end'])
+
+        with db_connection.DBContextManager(dbconn) as cxn:
+            data = db_connection.get_many(cxn, start_date, end_date)
+            return jsonify(**{'events': data})
     
 
 if __name__ == '__main__':
     app.debug = True
+    dbconn = db_connection.init()
+    print(dbconn)
+
     app.run()
+
