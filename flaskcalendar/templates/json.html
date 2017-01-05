@@ -28,15 +28,13 @@
 
             droppable: true,
 
-            events: {
-                url: 'data',
-                error: function() {
-                    $('#script-warning').show();
-                }
-            },
-
             eventSources: [
-                '/calendar_event_feed'
+                {
+                    url: '/calendar_event_feed',
+                    error: function() {
+                        $('#script-warning').show();
+                    }
+                }
             ],
 
             loading: function(bool) {

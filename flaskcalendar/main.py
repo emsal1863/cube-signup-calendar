@@ -63,7 +63,8 @@ def calendar_event_multi_endpoint():
 
         with db_connection.DBContextManager(dbconn) as cxn:
             data = db_connection.get_many(cxn, start_date, end_date)
-            return jsonify(**{'events': data})
+            print(data)
+            return json.dumps(data)
     
 
 if __name__ == '__main__':
@@ -72,4 +73,3 @@ if __name__ == '__main__':
     print(dbconn)
 
     app.run()
-

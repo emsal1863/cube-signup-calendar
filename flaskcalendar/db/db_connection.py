@@ -1,4 +1,4 @@
-import os 
+import os
 import psycopg2
 from urllib.parse import urlparse
 import sys
@@ -18,11 +18,10 @@ class DBContextManager:
 
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type is not None and issubclass(exc_type, psycopg2.Error):
-            conn.rollback()
             print('Database transaction not successful: %s' % exc_value, file=sys.stderr)
+            self.conn.rollback()
             return True
         else:
-            self.conn.close()
             if exc_type is not None:
                 return
             return True
@@ -125,14 +124,22 @@ def get_many(conn, start, end):
         AND start_time <= to_timestamp(%s,'YYYY-MM-DDTHH:MI')
     """, (start.isoformat(), end.isoformat()))
 
+    #(4, datetime.datetime(2017, 1, 1, 0, 0), datetime.datetime(2017, 1, 1, 0, 0), 'yz')
+
     conn.commit()
     tmp_l = cur.fetchall()[:]
+    print(tmp_l)
 
     desc = cur.description
-    ret = [ImmutableDict(dict([(desc[i].name, tmp[i]) for i in range(len(desc))])) for tmp in tmp_l]
+    ret = [ImmutableDict({
+        'id': tmp[0],
+        'start': tmp[1].isoformat(),
+        'end': tmp[2].isoformat(),
+        'title': tmp[3]
+    }) for tmp in tmp_l]
 
     cur.close()
-    return tmp_l
+    return ret
 
 def insert_or_edit_batch(conn, new_event_data):
     """
