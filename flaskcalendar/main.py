@@ -39,23 +39,73 @@ def calendar_event_rest():
             d = {'error': 'need to pass in an id'}
             return jsonify(**d)
         else:
-            print(request.args)
-            return jsonify({'id': request.args['id']})
+            with db_connection.DBContextManager(dbconn) as cxn:
+                data = db_connection.read_time(cxn, request.args['id'])
+                return jsonify(**data)
+
     elif request.method == 'POST':
         data = request.get_json()
+        required_params = ('start_time', 'person')
+        if any([i not in data for i in required_params]):
+            return jsonify({'error': 'at least one required param missing'})
+
+        start_time = dateutil.parser.parse(data['start_time'])
+        try:
+            end_time = dateutil.parser.parse(data['end_time'])
+        except:
+            end_time = None
+        person = data['person']
+
+        global dbconn
+
+        with db_connection.DBContextManager(dbconn) as cxn:
+            ret_id = db_connection.insert_time(cxn, start_time, end_time, person)
+            return ret_id
+
+    elif request.method == 'PUT':
+        data = request.get_json()
+        required_params = ('id')
+        if any([i not in data for i in required_params]):
+            return jsonify({'error': 'at least one required param missing'})
+
+        event_id = data['id']
+
+        try:
+            start_time = dateutil.parser.parse(data.get('start_time'))
+        except:
+            start_time = None
+        
+        try:
+            end_time = dateutil.parser.parse(data['end_time'])
+        except:
+            end_time = None
+
+        person = data.get('person')
+
+        with db_connection.DBContextManager(dbconn) as cxn:
+            ret = db_connection.edit_time(cxn, event_id, person, start_time, end_time)
+            return jsonify(**ret)
+
         print(ImmutableDict(data))
         return json.dumps(data)
-    elif request.method == 'PUT':
-        pass
+
     elif request.method == 'DELETE':
-        pass
-    return 'ayy lmoa'
+        data = request.args
+        required_params = ('id')
+        if any([i not in data for i in required_params]):
+            return jsonify({'error': 'at least one required param missing'})
+
+        global dbconn
+        with db_connection.DBContextManager(dbconn) as cxn:
+            db_connection.delete_time(cxn, event_id)
+
+        return ('', 204)
 
 @app.route('/calendar_event_feed')
 def calendar_event_multi_endpoint():
     required_params = ('start', 'end')
     if any([i not in request.args for i in required_params]):
-        return jsonify({'error': 'required param missing'})
+        return jsonify({'error': 'at least one required param missing'})
     else:
         global dbconn
         start_date = dateutil.parser.parse(request.args['start'])

@@ -96,7 +96,7 @@ def delete_time(conn, event_id):
     conn.commit()
     cur.close()
 
-def edit_time(conn, event_id, new_event_data):
+def edit_time(conn, event_id, person, start_time, end_time):
     """
     TODO
 
@@ -104,9 +104,30 @@ def edit_time(conn, event_id, new_event_data):
 
     Takes in a psycopg2 connection, event id, and a json object containing the new data.
 
-    Not implemented yet.
     """
-    pass
+
+    event_id, = datum.get('id')
+    person = datum.get('person')
+    start_time = datum.get('start_time')
+    end_time = datum.get('end_time')
+
+    cmd = cur.execute("""
+    UPDATE calendar_events
+    SET {
+        person = %s,
+        start_time = to_timestamp(%s, 'YYYY-MM-DDTHH:MI'),
+        end_time = to_timestamp(%s,'YYYY-MM-DDTHH:MI')
+    }
+    WHERE id=%s
+    RETURNING *""",
+    (person, start_time.isoformat(), end_time.isoformat(), event_id))
+
+    desc = cur.description
+    ret_data = cur.fetchone()
+
+    conn.commit()
+    cur.close()
+    return ImmutableDict(dict([(desc[i].name, ret_data[i]) for i in range(len(desc))]))
 
 def get_many(conn, start, end):
     """
@@ -119,7 +140,7 @@ def get_many(conn, start, end):
 
     cur = conn.cursor()
     cur.execute("""
-    SELECT * FROM calendar_events
+    SELECT id, start_time, end_time, person FROM calendar_events
         WHERE start_time >= to_timestamp(%s, 'YYYY-MM-DDTHH:MI')
         AND start_time <= to_timestamp(%s,'YYYY-MM-DDTHH:MI')
     """, (start.isoformat(), end.isoformat()))
