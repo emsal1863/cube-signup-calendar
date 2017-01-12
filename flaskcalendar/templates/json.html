@@ -48,7 +48,6 @@
                     editable: true,
                 };
                 $("#calendar").fullCalendar('renderEvent', event, true);
-                console.log(f);
             },
 
             eventRender: function(event, element, view) {
@@ -59,6 +58,89 @@
             eventClick: function(calEvent, jsEvent, view) {
                 var element = <Dialog calEventId={calEvent._id} calendar={$("#calendar")} />;
                 ReactDOM.render(element, document.getElementById('sidepane'));
+            },
+
+            eventAfterRender: function(event, element, view) {
+                if (event.id == undefined) {
+                    console.log(event);
+                    $.ajax({
+                        url: '/calendar_event',
+                        contentType: 'application/json',
+                        method: 'POST',
+                        data: JSON.stringify({
+                            person: event.title,
+                            start_time: event.start,
+                            end_time: event.end
+                        })
+                    }).done(function(data) {
+                        event.id = data['id'];
+                        $('#calendar').fullCalendar('updateEvent', event);
+                    });
+                }
+            },
+
+            eventDrop: function(event, delta, revertFunc, jsEvent, ui, view) {
+                if (event.id == undefined) {
+                    console.log(event);
+                    $.ajax({
+                        url: '/calendar_event',
+                        contentType: 'application/json',
+                        method: 'POST',
+                        data: JSON.stringify({
+                            person: event.title,
+                            start_time: event.start,
+                            end_time: event.end
+                        })
+                    }).done(function(data) {
+                        event.id = data['id'];
+                        $('#calendar').fullCalendar('updateEvent', event);
+                    });
+                } else {
+                    console.log(event);
+                    $.ajax({
+                        url: '/calendar_event',
+                        contentType: 'application/json',
+                        method: 'PUT',
+                        data: JSON.stringify({
+                            id: event.id,
+                            person: event.title,
+                            start_time: event.start,
+                            end_time: event.end
+                        })
+                    });
+                }
+            },
+
+            eventResize: function(event, delta, revertFunc, jsEvent, ui, view) {
+                if (event.id == undefined) {
+                    console.log(event);
+                    $.ajax({
+                        url: '/calendar_event',
+                        contentType: 'application/json',
+                        method: 'POST',
+                        data: JSON.stringify({
+                            person: event.title,
+                            start_time: event.start,
+                            end_time: event.end
+                        })
+                    }).done(function(data) {
+                        event.id = data['id'];
+                        $('#calendar').fullCalendar('updateEvent', event);
+                    });
+                } else {
+                    console.log(event);
+                    $.ajax({
+                        url: '/calendar_event',
+                        contentType: 'application/json',
+                        method: 'PUT',
+                        data: JSON.stringify({
+                            id: event.id,
+                            person: event.title,
+                            start_time: event.start,
+                            end_time: event.end
+                        })
+                    });
+                }
             }
         });
     });

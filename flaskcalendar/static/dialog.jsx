@@ -36,14 +36,13 @@ class Dialog extends React.Component {
 
     render() {
         const divStyle = {
-            color: '#f00',
-            clear: 'both'
+            color: '#f00'
         };
 
         return (
             <div style={divStyle}> <h1>Edit event -- {this.props.calEventId}</h1>
                 <form onSubmit = {this.handleSubmit}>
-                    <input name="person" value={this.state.personValue} onChange={this.handleChange} />
+                    <input name="person" value={this.state.personValue} onChange={this.handleChange} /> <br />
                     <input type="submit" value="submit" />
                 </form>
             </div>

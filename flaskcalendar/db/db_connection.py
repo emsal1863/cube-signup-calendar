@@ -53,14 +53,24 @@ def insert_time(conn, start_time, end_time, person):
     Returns the id of the database record just inserted
     """
     cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO calendar_events
-            (start_time, end_time, person)
-        VALUES
-            (to_timestamp(%s, 'YYYY-MM-DDTHH:MI'), to_timestamp(%s,'YYYY-MM-DDTHH:MI'), %s)
-        returning id""",
-        (start_time.isoformat(), end_time.isoformat(), person)
-    )
+    if end_time is not None:
+        cur.execute("""
+            INSERT INTO calendar_events
+                (start_time, end_time, person)
+            VALUES
+                (TIMESTAMP %s, TIMESTAMP %s, %s)
+            returning id""",
+            (start_time.isoformat(), end_time.isoformat(), person)
+        )
+    else:
+        cur.execute("""
+            INSERT INTO calendar_events
+                (start_time, person)
+            VALUES
+                (TIMESTAMP %s, %s)
+            returning id""",
+            (start_time.isoformat(), person)
+        )
 
     conn.commit()
     tmp = cur.fetchone()
@@ -106,26 +116,33 @@ def edit_time(conn, event_id, person, start_time, end_time):
 
     """
 
-    event_id, = datum.get('id')
-    person = datum.get('person')
-    start_time = datum.get('start_time')
-    end_time = datum.get('end_time')
+    cur = conn.cursor()
+    print("Event id to edit:", event_id, "// Start time for edit:", start_time, "// End time for edit:", end_time)
+    print("end_time", end_time.isoformat())
 
-    cmd = cur.execute("""
-    UPDATE calendar_events
-    SET {
-        person = %s,
-        start_time = to_timestamp(%s, 'YYYY-MM-DDTHH:MI'),
-        end_time = to_timestamp(%s,'YYYY-MM-DDTHH:MI')
-    }
-    WHERE id=%s
-    RETURNING *""",
-    (person, start_time.isoformat(), end_time.isoformat(), event_id))
+    if end_time is not None:
+        cur.execute("""
+        UPDATE calendar_events
+        SET (person, start_time, end_time) =
+            (%s, TIMESTAMP %s, TIMESTAMP %s)
+        WHERE id=%s
+        RETURNING *""",
+        (person, start_time.isoformat(), end_time.isoformat(), event_id))
+    else:
+        cur.execute("""
+        UPDATE calendar_events
+        SET (person, start_time) =
+            (%s, TIMESTAMP %s)
+        WHERE id=%s
+        RETURNING *""",
+        (person, start_time.isoformat(), event_id))
+
+
+    conn.commit()
 
     desc = cur.description
     ret_data = cur.fetchone()
 
-    conn.commit()
     cur.close()
     return ImmutableDict(dict([(desc[i].name, ret_data[i]) for i in range(len(desc))]))
 
@@ -141,21 +158,29 @@ def get_many(conn, start, end):
     cur = conn.cursor()
     cur.execute("""
     SELECT id, start_time, end_time, person FROM calendar_events
-        WHERE start_time >= to_timestamp(%s, 'YYYY-MM-DDTHH:MI')
-        AND start_time <= to_timestamp(%s,'YYYY-MM-DDTHH:MI')
+        WHERE start_time >= TIMESTAMP %s
+        AND start_time <= TIMESTAMP %s
     """, (start.isoformat(), end.isoformat()))
 
     #(4, datetime.datetime(2017, 1, 1, 0, 0), datetime.datetime(2017, 1, 1, 0, 0), 'yz')
 
+    def convert(t):
+        if t[2] is None:
+            t2r = None
+        else:
+            t2r = t[2].isoformat()
+        t1r = t[1].isoformat()
+        return (t[0], t1r, t2r, t[3])
+
     conn.commit()
-    tmp_l = cur.fetchall()[:]
+    tmp_l = list(map(convert, cur.fetchall()[:]))
     print(tmp_l)
 
     desc = cur.description
     ret = [ImmutableDict({
         'id': tmp[0],
-        'start': tmp[1].isoformat(),
-        'end': tmp[2].isoformat(),
+        'start': tmp[1],
+        'end': tmp[2],
         'title': tmp[3]
     }) for tmp in tmp_l]
 
@@ -183,11 +208,8 @@ def insert_or_edit_batch(conn, new_event_data):
 
             cur.execute("""
             UPDATE calendar_events
-            SET {
-                person = %s,
-                start_time = to_timestamp(%s, 'YYYY-MM-DDTHH:MI'),
-                end_time = to_timestamp(%s,'YYYY-MM-DDTHH:MI')
-            }
+            SET (person, start_time, end_time) =
+                (%s, to_timestamp(%s, 'YYYY-MM-DD\\THH:MI'), to_timestamp(%s,'YYYY-MM-DD\\THH:MI'))
             WHERE id=%s""",
             (person, start_time.isoformat(), end_time.isoformat(), event_id))
         else:
@@ -197,7 +219,7 @@ def insert_or_edit_batch(conn, new_event_data):
             INSERT INTO calendar_events
                 (start_time, end_time, person)
             VALUES
-                (to_timestamp(%s, 'YYYY-MM-DDTHH:MI'), to_timestamp(%s,'YYYY-MM-DDTHH:MI'), %s)""",
+                (to_timestamp(%s, 'YYYY-MM-DD\\THH:MI'), to_timestamp(%s,'YYYY-MM-DD\\THH:MI'), %s)""",
             (start_time.isoformat(), end_time.isoformat(), person))
 
     conn.commit()

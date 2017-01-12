@@ -45,7 +45,7 @@ def calendar_event_rest():
 
     elif request.method == 'POST':
         data = request.get_json()
-        required_params = ('start_time', 'person')
+        required_params = ['start_time', 'person']
         if any([i not in data for i in required_params]):
             return jsonify({'error': 'at least one required param missing'})
 
@@ -60,18 +60,19 @@ def calendar_event_rest():
 
         with db_connection.DBContextManager(dbconn) as cxn:
             ret_id = db_connection.insert_time(cxn, start_time, end_time, person)
-            return ret_id
+
+            return jsonify({'id': ret_id[0]})
 
     elif request.method == 'PUT':
         data = request.get_json()
-        required_params = ('id')
+        required_params = ['id']
         if any([i not in data for i in required_params]):
             return jsonify({'error': 'at least one required param missing'})
 
         event_id = data['id']
 
         try:
-            start_time = dateutil.parser.parse(data.get('start_time'))
+            start_time = dateutil.parser.parse(data['start_time'])
         except:
             start_time = None
         
@@ -84,9 +85,9 @@ def calendar_event_rest():
 
         with db_connection.DBContextManager(dbconn) as cxn:
             ret = db_connection.edit_time(cxn, event_id, person, start_time, end_time)
+            print(ImmutableDict(ret))
             return jsonify(**ret)
 
-        print(ImmutableDict(data))
         return json.dumps(data)
 
     elif request.method == 'DELETE':
@@ -113,9 +114,7 @@ def calendar_event_multi_endpoint():
 
         with db_connection.DBContextManager(dbconn) as cxn:
             data = db_connection.get_many(cxn, start_date, end_date)
-            print(data)
             return json.dumps(data)
-    
 
 if __name__ == '__main__':
     app.debug = True
