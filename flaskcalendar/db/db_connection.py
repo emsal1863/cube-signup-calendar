@@ -118,7 +118,6 @@ def edit_time(conn, event_id, person, start_time, end_time):
 
     cur = conn.cursor()
     print("Event id to edit:", event_id, "// Start time for edit:", start_time, "// End time for edit:", end_time)
-    print("end_time", end_time.isoformat())
 
     if end_time is not None:
         cur.execute("""
@@ -161,8 +160,6 @@ def get_many(conn, start, end):
         WHERE start_time >= TIMESTAMP %s
         AND start_time <= TIMESTAMP %s
     """, (start.isoformat(), end.isoformat()))
-
-    #(4, datetime.datetime(2017, 1, 1, 0, 0), datetime.datetime(2017, 1, 1, 0, 0), 'yz')
 
     def convert(t):
         if t[2] is None:

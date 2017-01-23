@@ -51,12 +51,12 @@
             },
 
             eventRender: function(event, element, view) {
-                var element = <Dialog calEventId={event._id} calendar={$("#calendar")} />;
+                var element = <Dialog calEvent={event} calendar={$("#calendar")} />;
                 ReactDOM.render(element, document.getElementById('sidepane'));
             },
 
             eventClick: function(calEvent, jsEvent, view) {
-                var element = <Dialog calEventId={calEvent._id} calendar={$("#calendar")} />;
+                var element = <Dialog calEvent={calEvent} calendar={$("#calendar")} />;
                 ReactDOM.render(element, document.getElementById('sidepane'));
             },
 

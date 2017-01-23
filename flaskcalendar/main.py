@@ -75,7 +75,7 @@ def calendar_event_rest():
             start_time = dateutil.parser.parse(data['start_time'])
         except:
             start_time = None
-        
+
         try:
             end_time = dateutil.parser.parse(data['end_time'])
         except:
