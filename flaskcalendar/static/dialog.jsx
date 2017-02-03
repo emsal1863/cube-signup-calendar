@@ -1,6 +1,5 @@
 class Dialog extends React.Component {
 
-
     constructor(calEvent, calendar) {
         super();
 
@@ -50,7 +49,13 @@ class Dialog extends React.Component {
     }
 
     handleDelete(event) {
-        console.log("Delete pressed");
+        var calEventId = this.props.calEvent.id;
+        var calEventIdUnderlying = this.props.calEvent._id;
+        $.ajax({
+            url: '/calendar_event?id='+calEventId,
+            method: 'DELETE'
+        });
+        this.props.calendar.fullCalendar('removeEvents', [calEventIdUnderlying]);
     }
 
     render() {
@@ -58,8 +63,18 @@ class Dialog extends React.Component {
             color: '#f00'
         };
 
+        var finalStr;
+        var startUtcstr = this.props.calEvent.start._i;
+        if (this.props.calEvent.end != null) {
+            var endUtcstr = this.props.calEvent.end._i;
+            finalStr = "Edit event -- " + this.props.calEvent.id + ": " + startUtcstr + " - " + endUtcstr;
+        } else {
+            finalStr = "Edit event -- " + this.props.calEvent.id + ": " + startUtcstr;
+        }
+
         return (
-            <div style={divStyle}> <h1>Edit event -- {this.props.calEvent._id}</h1>
+            <div style={divStyle}> 
+                <h1>{finalStr}</h1>
                 <form onSubmit = {this.handleSubmit}>
                     <input name="person" value={this.state.personValue} onChange={this.handleChange} /> <br />
                     <input type="submit" value="Submit" />
