@@ -78,5 +78,5 @@ if __name__ == '__main__':
 
     for i in dirlist_sorted:
         print(i)
-        os.system("psql -f %s" % (dirname + i))
+        os.system("psql %s -f %s" % (os.environ["DATABASE_URL"], dirname + i))
         print("Migration complete: %s" % i)
