@@ -1,1 +1,1 @@
-web: sh -c 'cd flask-fullcalendar && gunicorn main:app'
+web: sh -c 'cd fullcalendar && gunicorn main:app'
