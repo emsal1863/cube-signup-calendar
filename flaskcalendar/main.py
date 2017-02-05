@@ -121,6 +121,8 @@ def calendar_event_multi_endpoint():
             data = db_connection.get_many(cxn, start_date, end_date)
             return json.dumps(data)
 
+dbconn = db_connection.init()
+
 if __name__ == '__main__':
     app.debug = True
     dbconn = db_connection.init()

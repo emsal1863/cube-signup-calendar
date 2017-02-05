@@ -1,1 +1,1 @@
-web: python3 flaskcalendar/main.py
+web: sh -c 'cd flask-fullcalendar && gunicorn main:app'
