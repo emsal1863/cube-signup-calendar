@@ -9,6 +9,8 @@ from werkzeug.datastructures import ImmutableDict
 from db import db_connection
 
 
+dbconn = db_connection.init()
+
 app = Flask(__name__)
 
 
@@ -56,8 +58,6 @@ def calendar_event_rest():
             end_time = None
         person = data['person']
 
-        global dbconn
-
         with db_connection.DBContextManager(dbconn) as cxn:
             ret_id = db_connection.insert_time(cxn, start_time, end_time, person)
 
@@ -100,7 +100,6 @@ def calendar_event_rest():
             resp.status_code = 400
             return resp
 
-        global dbconn
         with db_connection.DBContextManager(dbconn) as cxn:
             db_connection.delete_time(cxn, int(request.args['id']))
 
@@ -120,8 +119,6 @@ def calendar_event_multi_endpoint():
         with db_connection.DBContextManager(dbconn) as cxn:
             data = db_connection.get_many(cxn, start_date, end_date)
             return json.dumps(data)
-
-dbconn = db_connection.init()
 
 if __name__ == '__main__':
     app.debug = True
